@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useSocket } from './hooks/useSocket'
 import { useAuthStore } from './stores/authStore'
 import { useOfflineStore } from './stores/offlineStore'
+import { usePWA } from './hooks/usePWA'
 
 // Layout components
 import Layout from './components/Layout/Layout'
@@ -20,6 +21,9 @@ import Settings from './pages/Settings'
 import AuthCallback from './pages/AuthCallback'
 import NotFound from './pages/NotFound'
 
+// PWA components
+import { PWAInstallPrompt } from './components/PWA/PWAInstallPrompt'
+
 // Loading component
 import LoadingSpinner from './components/UI/LoadingSpinner'
 
@@ -30,6 +34,7 @@ import LoadingSpinner from './components/UI/LoadingSpinner'
 function App() {
   const { isAuthenticated, isLoading, initializeAuth } = useAuthStore()
   const { initializeOfflineStore } = useOfflineStore()
+  const { isOnline } = usePWA()
   
   // Inicializar Socket.IO para comunicación en tiempo real
   const { socket, isConnected } = useSocket()
@@ -96,7 +101,7 @@ function App() {
             <Route path="/sellers" element={<Sellers />} />
             
             {/* Productos */}
-            <Generator path="/products" element={<Products />} />
+            <Route path="/products" element={<Products />} />
             <Route path="/products/:sellerId" element={<Products />} />
             
             {/* Búsquedas */}
@@ -117,6 +122,9 @@ function App() {
           </Routes>
         </main>
       </Layout>
+      
+      {/* Prompt de instalación PWA */}
+      <PWAInstallPrompt />
     </div>
   )
 }

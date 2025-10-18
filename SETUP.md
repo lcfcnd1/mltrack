@@ -247,7 +247,57 @@ pm2 status
 pm2 logs mltrack-backend
 ```
 
-## ✅ Paso 8: Verificar que todo funciona
+## 📱 Paso 8: Configurar PWA y Notificaciones Push
+
+### 8.1 Generar claves VAPID para notificaciones push
+
+```bash
+# Instalar web-push globalmente
+npm install -g web-push
+
+# Generar claves VAPID (una sola vez)
+npx web-push generate-vapid-keys
+
+# Las claves se mostrarán así:
+# Public Key: BEl62iUYgUivxIkv69yViEuiBIa40HI...
+# Private Key: Y8f-2OVvpe1a1gOuvT8...
+```
+
+### 8.2 Configurar variables de entorno para VAPID
+
+```bash
+# Editar archivo .env del backend
+nano backend/.env
+
+# Agregar las claves VAPID generadas:
+VAPID_PUBLIC_KEY=BEl62iUYgUivxIkv69yViEuiBIa40HI...
+VAPID_PRIVATE_KEY=Y8f-2OVvpe1a1gOuvT8...
+VAPID_SUBJECT=mailto:admin@sqsoft.top
+```
+
+### 8.3 Generar íconos PWA
+
+```bash
+# Generar íconos básicos (placeholders)
+node scripts/generate-pwa-icons.js
+
+# Para generar íconos reales, instalar Sharp primero:
+cd frontend
+npm install sharp
+
+# Generar íconos reales
+node scripts/generate-icons-with-sharp.js
+```
+
+### 8.4 Actualizar base de datos para notificaciones push
+
+```bash
+# Ejecutar migraciones para las nuevas tablas
+cd backend
+npx drizzle-kit push
+```
+
+## ✅ Paso 9: Verificar que todo funciona
 
 ### 8.1 Verificar backend
 - Abre tu navegador en: http://localhost:3006/health
@@ -504,4 +554,75 @@ chmod +x scripts/manage.sh
 
 Este script reemplaza los scripts complejos anteriores y proporciona una interfaz simple y clara para gestionar MLTrack.
 
-¡Felicitaciones! 🎉 Si completaste todos los pasos, MLTrack debería estar funcionando correctamente en tu máquina local.
+## 📱 Funcionalidades PWA y Notificaciones Push
+
+### 🎯 Capacidades PWA Completas
+
+Una vez configurado, MLTrack incluye:
+
+- **Instalación como app nativa** en Android, iOS y escritorio
+- **Notificaciones push nativas** con Web Push API
+- **Funcionamiento offline** con IndexedDB y Service Worker
+- **Cache inteligente** con estrategias avanzadas
+- **Interfaz responsive** optimizada para todos los dispositivos
+
+### 🔔 Sistema de Notificaciones Push
+
+#### Tipos de Notificaciones
+- **🆕 Nuevos productos** encontrados en sincronizaciones
+- **💰 Cambios de precio** en productos seguidos
+- **🔍 Nuevos resultados** de búsquedas guardadas
+- **✅ Sincronización completa** con estadísticas
+
+#### Configuración de Usuario
+- **Filtros personalizables** por precio, categoría, ubicación
+- **Preferencias granulares** para cada tipo de notificación
+- **Gestión de permisos** y suscripciones
+- **Notificaciones de prueba** para verificar funcionamiento
+
+### 📲 Instalación PWA
+
+#### En Android (Chrome)
+1. Abre la aplicación en Chrome
+2. Aparecerá un prompt "Instalar MLTrack"
+3. Toca "Instalar" para agregar a la pantalla de inicio
+4. La app se abrirá en modo standalone
+
+#### En iOS (Safari)
+1. Abre la aplicación en Safari
+2. Toca el botón de compartir
+3. Selecciona "Agregar a pantalla de inicio"
+4. Confirma el nombre y toca "Agregar"
+
+#### En Escritorio (Chrome/Edge)
+1. Abre la aplicación en Chrome o Edge
+2. Busca el ícono de instalación en la barra de direcciones
+3. Haz clic en "Instalar MLTrack"
+4. La app se instalará como aplicación de escritorio
+
+### 🛠️ APIs de Notificaciones
+
+#### Frontend
+```typescript
+// Hook para PWA
+import { usePWA } from './hooks/usePWA';
+const { installPWA, isInstallable, hasUpdate } = usePWA();
+
+// Hook para notificaciones push
+import { usePushNotifications } from './hooks/usePushNotifications';
+const { subscribeToPush, updatePreferences } = usePushNotifications();
+```
+
+#### Backend
+```typescript
+// Enviar notificación push
+import { sendNotificationToAllSubscriptions } from './services/pushNotifications';
+
+await sendNotificationToAllSubscriptions({
+  title: 'Nuevo producto encontrado',
+  body: 'Se encontró un nuevo producto que coincide con tu búsqueda',
+  data: { url: '/mltrack/products/123' }
+});
+```
+
+¡Felicitaciones! 🎉 Si completaste todos los pasos, MLTrack debería estar funcionando correctamente en tu máquina local con todas las capacidades PWA y notificaciones push. 📱✨

@@ -16,6 +16,7 @@ import { mercadoLibreService } from './services/mercadolibre';
 import { authRoutes } from './routes/auth';
 import { syncRoutes } from './routes/sync';
 import { searchRoutes } from './routes/searches';
+import { pushRoutes } from './routes/push';
 
 /**
  * Servidor principal de MLTrack
@@ -139,6 +140,9 @@ async function registerRoutes() {
   
   // Rutas de búsquedas
   await fastify.register(searchRoutes, { prefix: '/api' });
+  
+  // Rutas de notificaciones push
+  await fastify.register(pushRoutes, { prefix: '/api/push' });
 
   // Ruta de health check
   fastify.get('/health', async (request, reply) => {

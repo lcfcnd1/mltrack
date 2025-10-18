@@ -88,6 +88,36 @@ export const systemConfig = pgTable('system_config', {
   createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
+// Tabla de suscripciones push
+export const pushSubscriptions = pgTable('push_subscriptions', {
+  id: serial('id').primaryKey(),
+  endpoint: text('endpoint').unique().notNull(), // Endpoint de la suscripción
+  p256dh: text('p256dh').notNull(), // Clave pública p256dh
+  auth: text('auth').notNull(), // Clave de autenticación
+  userId: varchar('user_id', { length: 100 }), // ID del usuario (opcional)
+  userAgent: text('user_agent'), // User agent del navegador
+  isActive: boolean('is_active').default(true).notNull(), // Si la suscripción está activa
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
+// Tabla de preferencias de notificaciones
+export const notificationPreferences = pgTable('notification_preferences', {
+  id: serial('id').primaryKey(),
+  subscriptionId: integer('subscription_id').references(() => pushSubscriptions.id).notNull(),
+  enabled: boolean('enabled').default(true).notNull(), // Si las notificaciones están habilitadas
+  newProducts: boolean('new_products').default(true).notNull(), // Notificar nuevos productos
+  priceChanges: boolean('price_changes').default(true).notNull(), // Notificar cambios de precio
+  searchResults: boolean('search_results').default(true).notNull(), // Notificar resultados de búsqueda
+  syncComplete: boolean('sync_complete').default(false).notNull(), // Notificar sincronización completa
+  minPrice: decimal('min_price', { precision: 10, scale: 2 }), // Precio mínimo para notificaciones
+  maxPrice: decimal('max_price', { precision: 10, scale: 2 }), // Precio máximo para notificaciones
+  categories: json('categories').$type<string[]>(), // Categorías filtradas
+  locations: json('locations').$type<string[]>(), // Ubicaciones filtradas
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
+});
+
 // Definición de relaciones
 export const sellersRelations = relations(sellers, ({ many }) => ({
   products: many(products),
@@ -129,6 +159,20 @@ export const syncHistoryRelations = relations(syncHistory, ({ one }) => ({
   })
 }));
 
+export const pushSubscriptionsRelations = relations(pushSubscriptions, ({ one }) => ({
+  preferences: one(notificationPreferences, {
+    fields: [pushSubscriptions.id],
+    references: [notificationPreferences.subscriptionId]
+  })
+}));
+
+export const notificationPreferencesRelations = relations(notificationPreferences, ({ one }) => ({
+  subscription: one(pushSubscriptions, {
+    fields: [notificationPreferences.subscriptionId],
+    references: [pushSubscriptions.id]
+  })
+}));
+
 // Tipos TypeScript para las tablas
 export type Seller = typeof sellers.$inferSelect;
 export type NewSeller = typeof sellers.$inferInsert;
@@ -147,3 +191,9 @@ export type NewSyncHistory = typeof syncHistory.$inferInsert;
 
 export type SystemConfig = typeof systemConfig.$inferSelect;
 export type NewSystemConfig = typeof systemConfig.$inferInsert;
+
+export type PushSubscription = typeof pushSubscriptions.$inferSelect;
+export type NewPushSubscription = typeof pushSubscriptions.$inferInsert;
+
+export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
+export type NewNotificationPreferences = typeof notificationPreferences.$inferInsert;

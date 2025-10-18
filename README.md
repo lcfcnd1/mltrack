@@ -6,6 +6,8 @@ Sistema completo de seguimiento y sincronización de productos de MercadoLibre c
 
 - **Autenticación OAuth2** con MercadoLibre
 - **Sincronización automática** de productos y búsquedas
+- **PWA completa** instalable en Android/iOS con notificaciones push
+- **Notificaciones push nativas** con Web Push API y VAPID
 - **PWA (Progressive Web App)** con funcionamiento offline
 - **Comunicación en tiempo real** con Socket.IO
 - **Scheduler personalizado** sin setInterval fijo
@@ -394,6 +396,86 @@ pm2 logs mltrack-backend
 
 # Ver logs en tiempo real
 pm2 logs mltrack-backend --lines 100 -f
+```
+
+## 📱 PWA y Notificaciones Push
+
+### 🎯 Capacidades PWA Completas
+
+MLTrack incluye una PWA completamente funcional con:
+
+- **Instalación nativa** en Android, iOS y escritorio
+- **Notificaciones push nativas** con Web Push API y VAPID
+- **Funcionamiento offline** con IndexedDB y Service Worker
+- **Interfaz responsive** optimizada para móviles y escritorio
+- **Cache inteligente** con estrategias avanzadas (Stale-While-Revalidate, CacheFirst)
+
+### 🔔 Sistema de Notificaciones Push
+
+#### Configuración VAPID
+```bash
+# Generar claves VAPID (una sola vez)
+npx web-push generate-vapid-keys
+
+# Agregar al archivo .env del backend
+VAPID_PUBLIC_KEY=tu_clave_publica_vapid
+VAPID_PRIVATE_KEY=tu_clave_privada_vapid
+VAPID_SUBJECT=mailto:admin@sqsoft.top
+```
+
+#### Características de Notificaciones
+- **Suscripción automática** a notificaciones push
+- **Filtros personalizables** por:
+  - Precio mínimo/máximo
+  - Categorías específicas
+  - Ubicaciones geográficas
+- **Tipos de notificaciones**:
+  - 🆕 Nuevos productos encontrados
+  - 💰 Cambios de precio
+  - 🔍 Nuevos resultados de búsqueda
+  - ✅ Completado de sincronizaciones
+- **Gestión de permisos** y preferencias de usuario
+- **Compatibilidad multiplataforma** (Android Chrome, iOS Safari, Desktop)
+
+#### Instalación PWA
+- **Prompt automático** cuando la PWA es instalable
+- **Íconos adaptativos** en múltiples resoluciones (72x72 a 512x512)
+- **Manifest completo** con shortcuts y configuración
+- **Service Worker** con estrategias de cache avanzadas
+
+### 🛠️ Generación de Íconos PWA
+
+```bash
+# Generar íconos básicos (placeholders)
+node scripts/generate-pwa-icons.js
+
+# Generar íconos reales con Sharp (requiere: npm install sharp)
+node scripts/generate-icons-with-sharp.js
+```
+
+### 📲 APIs de Notificaciones
+
+#### Frontend
+```typescript
+// Hook para PWA
+import { usePWA } from './hooks/usePWA';
+const { installPWA, isInstallable, hasUpdate } = usePWA();
+
+// Hook para notificaciones push
+import { usePushNotifications } from './hooks/usePushNotifications';
+const { subscribeToPush, updatePreferences } = usePushNotifications();
+```
+
+#### Backend
+```typescript
+// Enviar notificación push
+import { sendNotificationToAllSubscriptions } from './services/pushNotifications';
+
+await sendNotificationToAllSubscriptions({
+  title: 'Nuevo producto encontrado',
+  body: 'Se encontró un nuevo producto que coincide con tu búsqueda',
+  data: { url: '/mltrack/products/123' }
+});
 ```
 
 ## 📞 Soporte
